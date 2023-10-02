@@ -6,6 +6,7 @@ import numpy as np
 import sys
 import os
 import matplotlib
+from IPython import embed
 matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 
@@ -493,12 +494,14 @@ def seaice_drag_scaling (grid_path, output_file, rd_scale=1, bb_scale=1, ft_scal
 # out_dir: path to directory in which to save output files.
 # out_file_head: beginning of output filenames. If not set, it will be determined automatically as <expt>_<var>_. Each file will have the year appended.
 
-def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_path='/badc/cmip6/data/CMIP6/CMIP/MOHC/UKESM1-0-LL/', ensemble_member='r1i1p1f2', out_dir='./', out_file_head=None):
+def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_name='UKESM1-0-LL', lab_name='MOHC', mip_name='ScenarioMIP', ensemble_member='r1i1p1f2', out_dir='./', out_file_head=None, time_code='day'):
 
     import netCDF4 as nc
 
     # Days per year (assumes 30-day months)
     days_per_year = 12*30
+
+    model_path='/badc/cmip6/data/CMIP6/' + mip_name + '/' + '/' + lab_name + '/' + model_name + '/'
 
     # Make sure it's a real variable
     if var not in ['tas', 'huss', 'uas', 'vas', 'psl', 'pr', 'rsds', 'rlds']:
@@ -514,11 +517,16 @@ def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_
     out_dir = real_dir(out_dir)
 
     # Figure out where all the files are, and which years they cover
-    in_files, start_years, end_years = find_cmip6_files(model_path, expt, ensemble_member, var, 'day')
+    in_files, start_years, end_years = find_cmip6_files(model_path, expt, ensemble_member, var, time_code)
     if mit_start_year is None:
         mit_start_year = start_years[0]
     if mit_end_year is None:
         mit_end_year = end_years[-1]
+
+    if time_code in ['Amon', 'Emon']:
+        units_per_year = 12
+    else:
+        units_per_year = 360
 
     # Tell the user what to write about the grid
     lat = read_netcdf(in_files[0], 'lat')
@@ -540,7 +548,7 @@ def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_
         
         # Loop over years
         t_start = 0  # Time index in file
-        t_end = t_start+days_per_year
+        t_end = t_start+units_per_year
         for year in range(start_years[t], end_years[t]+1):
             if year >= mit_start_year and year <= mit_end_year:
                 print(('Processing ' + str(year)))
@@ -559,10 +567,10 @@ def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_
                     # Swap sign on radiation fluxes
                     data *= -1
                 # Write data
-                write_binary(data, out_dir+out_file_head+str(year))
+                write_binary(data, out_dir+out_file_head+str(year),prec=64)
             # Update time range for next time
             t_start = t_end
-            t_end = t_start + days_per_year
+            t_end = t_start + units_per_year
 
 
 # Convert a series of 6-hourly ERA5 forcing files (1 file per year) to monthly files. This will convert one variable, based on file_head_in (followed by _yyyy in each filename).
