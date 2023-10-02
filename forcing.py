@@ -494,7 +494,7 @@ def seaice_drag_scaling (grid_path, output_file, rd_scale=1, bb_scale=1, ft_scal
 # out_dir: path to directory in which to save output files.
 # out_file_head: beginning of output filenames. If not set, it will be determined automatically as <expt>_<var>_. Each file will have the year appended.
 
-def cmip6_atm_forcing (var, expt, mit_start_year=None, mit_end_year=None, model_name='UKESM1-0-LL', lab_name='MOHC', mip_name='ScenarioMIP', ensemble_member='r1i1p1f2', out_dir='./', out_file_head=None, time_code='day'):
+def cmip6_atm_forcing (var, expt='ssp585', mit_start_year=None, mit_end_year=None, model_name='UKESM1-0-LL', lab_name='MOHC', mip_name='ScenarioMIP', ensemble_member='r1i1p1f2', out_dir='./', out_file_head=None, time_code='Amon'):
 
     import netCDF4 as nc
 
